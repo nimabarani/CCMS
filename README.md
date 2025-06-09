@@ -48,12 +48,12 @@ ENCRYPTION_KEY=your_32_character_encryption_key
 
 **`/flask_app/.env`** (Flask application configuration):
 ```bash
-SECRET_KEY=your_secret_key_for_sessions
 ENCRYPTION_KEY=your_32_character_encryption_key
-POSTGRES_HOST=postgres
-POSTGRES_DB=ClientDB
-POSTGRES_USER=your_db_user
-POSTGRES_PASSWORD=your_db_password
+DB_HOST=postgres
+DB_USER=your_db_user
+DB_PASSWORD=your_db_password
+DB_NAME=ClientDB
+DB_PORT=5432
 ```
 
 ### 2. Database Initialization
