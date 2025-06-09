@@ -1,0 +1,40 @@
+services:
+  postgres:
+    image: postgres:17
+    restart: always
+    env_file:
+      - ./db/.env
+    volumes:
+      - ./db:/docker-entrypoint-initdb.d
+      - db_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+
+  flask-app:
+    build:
+      context: ./flask_app
+    command: python app.py
+    ports:
+      - "5005:5000"
+    volumes:
+      - ./flask_app:/app
+    depends_on:
+      - postgres
+    env_file:
+      - ./flask_app/.env
+
+  admin-app:
+    build:
+      context: ./flask_app
+    command: python admin_app.py
+    ports:
+      - "5001:5001"
+    volumes:
+      - ./flask_app:/app
+    depends_on:
+      - postgres
+    env_file:
+      - ./flask_app/.env
+
+volumes:
+  db_data:

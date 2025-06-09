@@ -1,0 +1,27 @@
+psql -U $(whoami) -d postgres -f db/create_roles.sql
+
+psql -U client_admin -d postgres -f db/create_db_and_table.sql
+
+## ERRORS
+- client_admin didn't have the create table permission first, but were given in create_roles.sql
+
+- psql:db/import_and_encrypt.sql:7: ERROR:  must be superuser or have privileges of the pg_read_server_files role to COPY from a file
+HINT:  Anyone can COPY to stdout or from stdin. psql's \copy command also works for anyone.
+
+### NOTES ###
+
+Password management via psql comes with three security vulnerabilities:
+
+The password is visible on the screen.
+Viewing the command history exposes the password.
+The information is transmitted as clear text without any encryption.
+
+SELECT current_user;
+
+\dn # schema
+\dt # tables
+
+\l # data bases
+\du # users
+
+

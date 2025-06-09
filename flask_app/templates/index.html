@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Advisor Dashboard</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100">
+    <div class="container mx-auto p-4">
+        <!-- Login Section -->
+        <div id="login-section" class="bg-white p-8 rounded shadow-md w-96 mx-auto mt-20">
+            <h2 class="text-2xl font-bold mb-6 text-center">Advisor Login</h2>
+            <input type="email" id="email" placeholder="Email" class="w-full p-2 mb-4 border rounded">
+            <input type="password" id="password" placeholder="Password" class="w-full p-2 mb-4 border rounded">
+            <button onclick="login()" class="w-full bg-blue-500 text-white p-2 rounded hover:bg-blue-600">Login</button>
+            <p id="login-message" class="mt-4 text-center"></p>
+        </div>
+
+        <!-- Dashboard Section -->
+        <div id="dashboard-section" class="hidden">
+            <!-- Header -->
+            <div class="bg-white p-4 rounded shadow-md mb-6 flex justify-between items-center">
+                <h1 class="text-2xl font-bold">Advisor Dashboard</h1>
+                <div class="flex items-center gap-4">
+                    <span id="advisor-email" class="text-gray-600"></span>
+                    <!-- "Create User" button removed -->
+                    <button onclick="showPasswordModal()" class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600">Change Password</button>
+                    <button onclick="logout()" class="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600">Logout</button>
+                </div>
+            </div>
+
+            <!-- Search Client Section -->
+            <div class="bg-white p-6 rounded shadow-md mt-6">
+                <h2 class="text-xl font-bold mb-4">Search Client</h2>
+                <div class="flex gap-2">
+                    <input type="text" id="search-client-id" placeholder="Enter Client ID" class="w-full p-2 border rounded">
+                    <button onclick="searchClient()" class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600">Search</button>
+                </div>
+                <div id="search-result" class="mt-4 text-center"></div>
+            </div>
+        </div>
+
+        <!-- Create User Modal has been removed -->
+
+        <!-- Password Change Modal -->
+        <div id="password-modal" class="hidden fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full">
+            <div class="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white">
+                <h3 class="text-lg font-bold mb-4">Change Password</h3>
+                <input type="password" id="new-password" placeholder="New Password (min. 6 characters)" 
+                       class="w-full p-2 mb-4 border rounded" required minlength="6">
+                <div class="flex justify-end gap-2">
+                    <button onclick="closePasswordModal()" class="bg-gray-300 text-black px-4 py-2 rounded hover:bg-gray-400">Cancel</button>
+                    <button onclick="updatePassword()" class="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600">Update</button>
+                </div>
+                <p id="password-message" class="mt-2 text-center"></p>
+            </div>
+        </div>
+
+        <!-- Client Edit Modal -->
+        <div id="edit-modal" class="hidden fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full">
+            <div class="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white">
+                <h3 class="text-lg font-bold mb-4">Edit Client</h3>
+                <input type="hidden" id="edit-client-id">
+                <label class="block text-sm font-medium text-gray-700 mb-1">Name</label>
+                <input type="text" id="edit-clientname" placeholder="Client Name" 
+                       class="w-full p-2 mb-4 border rounded">
+                <label class="block text-sm font-medium text-gray-700 mb-1">Email</label>
+                <input type="email" id="edit-email" placeholder="Client Email" 
+                       class="w-full p-2 mb-4 border rounded">
+                <label class="block text-sm font-medium text-gray-700 mb-1">Password</label>
+                <input type="text" id="edit-password" placeholder="Client Password" 
+                       class="w-full p-2 mb-4 border rounded">
+                <div class="flex justify-end gap-2">
+                    <button onclick="closeEditModal()" class="bg-gray-300 text-black px-4 py-2 rounded hover:bg-gray-400">Cancel</button>
+                    <button onclick="saveClient()" class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600">Save</button>
+                </div>
+                <p id="edit-message" class="mt-2 text-center"></p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        async function login() {
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+            
+            if (!email || !password) {
+                document.getElementById('login-message').textContent = 'Please enter both email and password';
+                document.getElementById('login-message').style.color = 'red';
+                return;
+            }
+            
+            const response = await fetch('/login', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ email, password })
+            });
+            const result = await response.json();
+            
+            if (response.ok) {
+                document.getElementById('login-section').classList.add('hidden');
+                document.getElementById('dashboard-section').classList.remove('hidden');
+                document.getElementById('advisor-email').textContent = result.email;
+                document.getElementById('email').value = '';
+                document.getElementById('password').value = '';
+            } else {
+                document.getElementById('login-message').textContent = result.message;
+                document.getElementById('login-message').style.color = 'red';
+            }
+        }
+
+        async function editClient(clientId) {
+            const response = await fetch(`/client/${clientId}`);
+            if (response.ok) {
+                const data = await response.json();
+                document.getElementById('edit-client-id').value = data.client.client_id;
+                document.getElementById('edit-clientname').value = data.client.clientname;
+                document.getElementById('edit-email').value = data.client.email;
+                document.getElementById('edit-password').value = data.client.password;
+                document.getElementById('edit-modal').classList.remove('hidden');
+            }
+        }
+
+        async function saveClient() {
+            const clientId = document.getElementById('edit-client-id').value;
+            const updates = {};
+            
+            const clientname = document.getElementById('edit-clientname').value;
+            const email = document.getElementById('edit-email').value;
+            const password = document.getElementById('edit-password').value;
+            
+            if (clientname) updates.clientname = clientname;
+            if (email) updates.email = email;
+            if (password) updates.password = password;
+            
+            const response = await fetch(`/client/${clientId}`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(updates)
+            });
+            
+            const result = await response.json();
+            if (response.ok) {
+                document.getElementById('edit-message').textContent = result.message;
+                document.getElementById('edit-message').style.color = 'green';
+                setTimeout(() => closeEditModal(), 1500);
+            } else {
+                document.getElementById('edit-message').textContent = result.message;
+                document.getElementById('edit-message').style.color = 'red';
+            }
+        }
+
+        function closeEditModal() {
+            document.getElementById('edit-modal').classList.add('hidden');
+            document.getElementById('edit-message').textContent = '';
+        }
+
+        function showPasswordModal() {
+            document.getElementById('password-modal').classList.remove('hidden');
+        }
+
+        function closePasswordModal() {
+            document.getElementById('password-modal').classList.add('hidden');
+            document.getElementById('new-password').value = '';
+            document.getElementById('password-message').textContent = '';
+        }
+
+        async function updatePassword() {
+            const newPassword = document.getElementById('new-password').value;
+            
+            if (!newPassword || newPassword.trim() === '') {
+                document.getElementById('password-message').textContent = 'Password cannot be empty';
+                document.getElementById('password-message').style.color = 'red';
+                return;
+            }
+            
+            const response = await fetch('/update-password', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ new_password: newPassword })
+            });
+            const result = await response.json();
+            
+            if (response.ok) {
+                document.getElementById('password-message').textContent = result.message;
+                document.getElementById('password-message').style.color = 'green';
+                setTimeout(() => closePasswordModal(), 1500);
+            } else {
+                document.getElementById('password-message').textContent = result.message;
+                document.getElementById('password-message').style.color = 'red';
+            }
+        }
+        
+        // The createUser(), showCreateUserModal(), and closeCreateUserModal()
+        // functions have been removed.
+
+        async function logout() {
+            const response = await fetch('/logout', {
+                method: 'POST'
+            });
+            if (response.ok) {
+                document.getElementById('login-section').classList.remove('hidden');
+                document.getElementById('dashboard-section').classList.add('hidden');
+                document.getElementById('login-message').textContent = 'Logged out successfully';
+                document.getElementById('login-message').style.color = 'green';
+            }
+        }
+
+        async function searchClient() {
+            const clientId = document.getElementById('search-client-id').value;
+            const resultDiv = document.getElementById('search-result');
+            resultDiv.innerHTML = '';
+            if (!clientId) {
+                resultDiv.textContent = 'Please enter a client ID.';
+                resultDiv.style.color = 'red';
+                return;
+            }
+            const response = await fetch(`/client/${clientId}`);
+            const data = await response.json();
+            if (response.ok) {
+                const client = data.client;
+                resultDiv.innerHTML = `
+                    <div class="p-4 border rounded bg-gray-50">
+                        <p><strong>ID:</strong> ${client.client_id}</p>
+                        <p><strong>Name:</strong> ${client.clientname}</p>
+                        <p><strong>Email:</strong> ${client.email}</p>
+                        <p><strong>Password:</strong> ${client.password}</p>
+                        <p><strong>Created On:</strong> ${new Date(client.created_on).toLocaleString()}</p>
+                        <button onclick="editClient(${client.client_id})" class="mt-4 bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600">Edit</button>
+                    </div>
+                `;
+                resultDiv.style.color = 'inherit';
+            } else {
+                resultDiv.textContent = data.message;
+                resultDiv.style.color = 'red';
+            }
+        }
+    </script>
+</body>
+</html>

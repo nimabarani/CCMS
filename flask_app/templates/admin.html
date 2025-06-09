@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin - Create User</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100">
+    <div class="container mx-auto p-4">
+        <div id="create-user-section" class="bg-white p-8 rounded shadow-md w-96 mx-auto mt-20">
+            <h2 class="text-2xl font-bold mb-6 text-center">Create New Advisor</h2>
+            <input type="email" id="email" placeholder="Email" class="w-full p-2 mb-4 border rounded">
+            <input type="password" id="password" placeholder="Password (min. 6 characters)" class="w-full p-2 mb-4 border rounded" minlength="6">
+            <button onclick="createUser()" class="w-full bg-green-500 text-white p-2 rounded hover:bg-green-600">Create User</button>
+            <p id="create-user-message" class="mt-4 text-center"></p>
+        </div>
+    </div>
+
+    <script>
+        async function createUser() {
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+
+            if (!email || !password) {
+                document.getElementById('create-user-message').textContent = 'Please enter both email and password';
+                document.getElementById('create-user-message').style.color = 'red';
+                return;
+            }
+            if (password.length < 6) {
+                document.getElementById('create-user-message').textContent = 'Password must be at least 6 characters long';
+                document.getElementById('create-user-message').style.color = 'red';
+                return;
+            }
+
+            const response = await fetch('/create-user', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ email, password })
+            });
+            const result = await response.json();
+
+            if (response.ok) {
+                document.getElementById('create-user-message').textContent = result.message;
+                document.getElementById('create-user-message').style.color = 'green';
+                document.getElementById('email').value = '';
+                document.getElementById('password').value = '';
+            } else {
+                document.getElementById('create-user-message').textContent = result.message;
+                document.getElementById('create-user-message').style.color = 'red';
+            }
+        }
+    </script>
+</body>
+</html>
