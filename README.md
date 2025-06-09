@@ -28,7 +28,7 @@ This system provides a secure platform for advisors to retreive and modify clien
 
 ## Prerequisites
 
-- Docker version 28.1.1
+- Docker
 - PostgreSQL 17
 - Python 3.12+
 
